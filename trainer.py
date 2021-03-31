@@ -2,7 +2,7 @@ import argparse
 import os
 import shutil
 import time
-
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.parallel
@@ -27,13 +27,13 @@ parser.add_argument('--arch', '-a', metavar='ARCH', default='resnet32',
                     ' (default: resnet32)')
 parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
-parser.add_argument('--epochs', default=200, type=int, metavar='N',
+parser.add_argument('--epochs', default=350, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N', help='mini-batch size (default: 128)')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -131,11 +131,16 @@ def main():
         validate(val_loader, model, criterion)
         return
 
+    total_losses = []
+    total_times = []
+    
     for epoch in range(args.start_epoch, args.epochs):
 
         # train for one epoch
         print('current lr {:.5e}'.format(optimizer.param_groups[0]['lr']))
-        train(train_loader, model, criterion, optimizer, epoch)
+        losses, times = train(train_loader, model, criterion, optimizer, epoch)
+        total_losses += losses
+        total_times += times
         lr_scheduler.step()
 
         # evaluate on validation set
@@ -157,6 +162,12 @@ def main():
             'best_prec1': best_prec1,
         }, is_best, filename=os.path.join(args.save_dir, 'model.th'))
 
+        data = {'train loss':total_losses,
+                'time to train':total_times}
+        # Convert the dictionary into DataFrame 
+        df = pd.DataFrame(data)
+        df.to_csv('./{}_k80.csv'.format(args.arch))
+        
 
 def train(train_loader, model, criterion, optimizer, epoch):
     """
@@ -167,6 +178,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
     losses = AverageMeter()
     top1 = AverageMeter()
 
+    loss_per_iter = []
+    time_per_iter = []
     # switch to train mode
     model.train()
 
@@ -198,6 +211,9 @@ def train(train_loader, model, criterion, optimizer, epoch):
         losses.update(loss.item(), input.size(0))
         top1.update(prec1.item(), input.size(0))
 
+        loss_per_iter += [loss.item()]
+        time_per_iter += [time.time() - end]
+        
         # measure elapsed time
         batch_time.update(time.time() - end)
         end = time.time()
@@ -211,6 +227,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
                       epoch, i, len(train_loader), batch_time=batch_time,
                       data_time=data_time, loss=losses, top1=top1))
 
+    return loss_per_iter, time_per_iter
 
 def validate(val_loader, model, criterion):
     """
