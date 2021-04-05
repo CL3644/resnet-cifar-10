@@ -41,6 +41,7 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 losses = []
 time_used = []
+acc = []
 
 for epoch in range(350):  # loop over the dataset multiple times
     running_loss = 0.0
@@ -62,13 +63,15 @@ for epoch in range(350):  # loop over the dataset multiple times
         end = time.time()
         # print statistics
         running_loss += loss.item()
+        running_accuracy += accuracy(outputs, labels)
         if i % 100 == 99:    # print every 100 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 100))
+            print('[%d, %5d] loss: %.3f, acc: %.3f' %
+                  (epoch + 1, i + 1, running_loss / 100, running_accuracy / 100))
             running_loss = 0.0
 
         losses += [loss.item()]
         time_used += [end - start]
+        acc += []
 
 # Define a dictionary containing employee data
 data = {'train loss':losses,
