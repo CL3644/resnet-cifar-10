@@ -119,6 +119,6 @@ data = {'train loss':losses,
         'train_acc':acc}
 # Convert the dictionary into DataFrame
 df = pd.DataFrame(data)
-df.to_csv('./resnet18_v100.csv')
+df.to_csv('./resnet50_k80.csv')
 plt.plot(losses)
 print('Finished Training')
