@@ -9,6 +9,9 @@ import torch.optim as optim
 import time
 import pandas as pd
 
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
+
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
@@ -42,10 +45,6 @@ losses = []
 time_used = []
 acc = []
 
-def accuracy(predictions, labels):
-    classes = torch.argmax(predictions, dim=1)
-    return torch.mean((classes == labels).float())
-
 for epoch in range(350):  # loop over the dataset multiple times
     running_loss = 0.0
     running_accuracy = 0.0
@@ -67,19 +66,19 @@ for epoch in range(350):  # loop over the dataset multiple times
         end = time.time()
         # print statistics
         running_loss += loss.item()
-        running_accuracy += accuracy(outputs, labels)
+        accuracy = (true == pred).sum().item()
         if i % 100 == 99:    # print every 100 mini-batches
             print('[%d, %5d] loss: %.3f, acc: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 100, running_accuracy / 100))
+                  (epoch + 1, i + 1, running_loss / 100, accuracy / 100))
             running_loss = 0.0
 
         losses += [loss.item()]
         time_used += [end - start]
-        acc += [accuracy(outputs, labels)]
+        acc += [(true == pred).sum().item()]
 
-# Define a dictionary containing employee data
 data = {'train loss':losses,
-        'time to train':time_used}
+        'time to train':time_used,
+        'train_acc':acc}
 # Convert the dictionary into DataFrame
 df = pd.DataFrame(data)
 df.to_csv('./resnet18_v100.csv')
