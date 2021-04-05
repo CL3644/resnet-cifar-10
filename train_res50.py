@@ -102,7 +102,7 @@ for epoch in range(350):  # loop over the dataset multiple times
 
         if i % 100 == 99:    # print every 100 mini-batches
             print('[%d, %5d] loss: %.3f, acc: %.3f, avg-acc: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 100, prec1 / 100), top1.avg)
+                  (epoch + 1, i + 1, running_loss / 100, prec1 / 100, top1.avg))
             running_loss = 0.0
 
         losses += [loss.item()]
