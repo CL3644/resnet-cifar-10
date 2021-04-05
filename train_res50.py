@@ -9,7 +9,6 @@ import torch.optim as optim
 import time
 import pandas as pd
 
-
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
 
@@ -43,8 +42,13 @@ losses = []
 time_used = []
 acc = []
 
+def accuracy(predictions, labels):
+    classes = torch.argmax(predictions, dim=1)
+    return torch.mean((classes == labels).float())
+
 for epoch in range(350):  # loop over the dataset multiple times
     running_loss = 0.0
+    running_accuracy = 0.0
     for i, data in enumerate(trainloader, 0):
         start = time.time()
         # get the inputs; data is a list of [inputs, labels]
