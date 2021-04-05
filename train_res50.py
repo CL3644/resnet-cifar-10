@@ -42,6 +42,40 @@ losses = []
 time_used = []
 acc = []
 
+def accuracy(output, target, topk=(1,)):
+    """Computes the precision@k for the specified values of k"""
+    maxk = max(topk)
+    batch_size = target.size(0)
+
+    _, pred = output.topk(maxk, 1, True, True)
+    pred = pred.t()
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+    res = []
+    for k in topk:
+        correct_k = correct[:k].view(-1).float().sum(0)
+        res.append(correct_k.mul_(100.0 / batch_size))
+    return res
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+top1 = AverageMeter()
+
 for epoch in range(350):  # loop over the dataset multiple times
     running_loss = 0.0
     running_accuracy = 0.0
@@ -63,15 +97,17 @@ for epoch in range(350):  # loop over the dataset multiple times
         end = time.time()
         # print statistics
         running_loss += loss.item()
-        accuracy = (labels == outputs).sum().item()
+        prec1 = accuracy(outputs.float().data, labels)[0]
+        top1.update(prec1.item(), inputs.size(0))
+
         if i % 100 == 99:    # print every 100 mini-batches
-            print('[%d, %5d] loss: %.3f, acc: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 100, accuracy / 100))
+            print('[%d, %5d] loss: %.3f, acc: %.3f, avg-acc: %.3f' %
+                  (epoch + 1, i + 1, running_loss / 100, prec1 / 100), top1.avg)
             running_loss = 0.0
 
         losses += [loss.item()]
         time_used += [end - start]
-        acc += [(labels == outputs).sum().item()]
+        acc += [prec1]
 
 data = {'train loss':losses,
         'time to train':time_used,
