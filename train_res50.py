@@ -98,11 +98,6 @@ for epoch in range(350):  # loop over the dataset multiple times
         running_loss += loss.item()
         prec1 = accuracy(outputs.float().data, labels)[0]
 
-        if prec1 / 100 > 0.92:
-            print('reached 92% acc, exiting')
-            exit = True
-            break
-
         if i % 100 == 99:    # print every 100 mini-batches
             print('[%d, %5d] loss: %.3f, acc: %.3f,' %
                   (epoch + 1, i + 1, running_loss / 100, prec1 / 100))
@@ -110,7 +105,12 @@ for epoch in range(350):  # loop over the dataset multiple times
 
         losses += [loss.item()]
         time_used += [end - start]
-        acc += [prec1]
+        acc += [prec1.item()]
+
+        if prec1 / 100 > 0.92:
+            print('reached 92% acc, exiting')
+            exit = True
+            break
     if exit:
         break
 
