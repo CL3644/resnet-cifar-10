@@ -74,8 +74,6 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
-top1 = AverageMeter()
-
 for epoch in range(350):  # loop over the dataset multiple times
     running_loss = 0.0
     running_accuracy = 0.0
@@ -98,11 +96,10 @@ for epoch in range(350):  # loop over the dataset multiple times
         # print statistics
         running_loss += loss.item()
         prec1 = accuracy(outputs.float().data, labels)[0]
-        top1.update(prec1.item(), inputs.size(0))
 
         if i % 100 == 99:    # print every 100 mini-batches
-            print('[%d, %5d] loss: %.3f, acc: %.3f, avg-acc: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 100, prec1 / 100, top1.avg))
+            print('[%d, %5d] loss: %.3f, acc: %.3f,' %
+                  (epoch + 1, i + 1, running_loss / 100, prec1 / 100))
             running_loss = 0.0
 
         losses += [loss.item()]
