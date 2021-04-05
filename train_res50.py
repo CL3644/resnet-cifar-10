@@ -71,7 +71,7 @@ for epoch in range(350):  # loop over the dataset multiple times
 
         losses += [loss.item()]
         time_used += [end - start]
-        acc += []
+        acc += [accuracy(outputs, labels)]
 
 # Define a dictionary containing employee data
 data = {'train loss':losses,
