@@ -77,6 +77,7 @@ class AverageMeter(object):
 for epoch in range(350):  # loop over the dataset multiple times
     running_loss = 0.0
     running_accuracy = 0.0
+    exit = False
     for i, data in enumerate(trainloader, 0):
         start = time.time()
         # get the inputs; data is a list of [inputs, labels]
@@ -97,6 +98,11 @@ for epoch in range(350):  # loop over the dataset multiple times
         running_loss += loss.item()
         prec1 = accuracy(outputs.float().data, labels)[0]
 
+        if prec1 / 100 > 0.92:
+            print('reached 92% acc, exiting')
+            exit = True
+            break
+
         if i % 100 == 99:    # print every 100 mini-batches
             print('[%d, %5d] loss: %.3f, acc: %.3f,' %
                   (epoch + 1, i + 1, running_loss / 100, prec1 / 100))
@@ -105,6 +111,8 @@ for epoch in range(350):  # loop over the dataset multiple times
         losses += [loss.item()]
         time_used += [end - start]
         acc += [prec1]
+    if exit:
+        break
 
 data = {'train loss':losses,
         'time to train':time_used,
